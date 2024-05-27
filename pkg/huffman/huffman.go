@@ -2,6 +2,7 @@ package huffman
 
 import (
 	"container/heap"
+	"github.com/legigor/go-huffman/pkg/huffman/bitbucket"
 )
 
 func compressAndDecompress(p []byte) ([]byte, error) {
@@ -39,17 +40,30 @@ func compressAndDecompress(p []byte) ([]byte, error) {
 	}
 	generateCodes(root, "")
 
-	var encoded string
+	encoded := bitbucket.Bucket{}
+	enc := ""
 	for _, b := range p {
-		encoded += codes[b]
+		code := codes[b]
+		for _, c := range code {
+			if c == '0' {
+				encoded.Append(0)
+				enc += "0"
+			} else {
+				encoded.Append(1)
+				enc += "1"
+			}
+		}
 	}
 
 	// Decompress
 
 	var decoded string
 	node := root
-	for _, bit := range encoded {
-		if bit == '0' {
+
+	bitsIterator := encoded.Iterator()
+	for bitsIterator.HasData() {
+		bit := bitsIterator.Read()
+		if bit == 0 {
 			node = node.left
 		} else {
 			node = node.right
@@ -57,6 +71,11 @@ func compressAndDecompress(p []byte) ([]byte, error) {
 		if node.left == nil && node.right == nil {
 			decoded += string(node.byte)
 			node = root
+		}
+
+		// Must not process more bits than encoded
+		if len(decoded) == len(p) {
+			break
 		}
 	}
 
