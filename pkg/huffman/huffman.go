@@ -1,29 +1,13 @@
 package huffman
 
 import (
-	"container/heap"
 	"github.com/legigor/go-huffman/pkg/huffman/bitbucket"
+	"github.com/legigor/go-huffman/pkg/huffman/freqtable"
 )
 
 func compressAndDecompress(p []byte) ([]byte, error) {
-	freq := freqTable{}
-	for _, b := range p {
-		freq[b]++
-	}
-
-	pq := &priorityQueue{}
-	heap.Init(pq)
-	for b, freq := range freq {
-		heap.Push(pq, &huffmanNode{byte: b, freq: freq})
-	}
-
-	for pq.Len() > 1 {
-		left := heap.Pop(pq).(*huffmanNode)
-		right := heap.Pop(pq).(*huffmanNode)
-		heap.Push(pq, &huffmanNode{byte: 0, freq: left.freq + right.freq, left: left, right: right})
-	}
-
-	root := heap.Pop(pq).(*huffmanNode)
+	freq := freqtable.Initialize(p)
+	root := createFreqTree(freq)
 
 	codes := make(map[byte]string)
 	var generateCodes func(node *huffmanNode, code string)
@@ -55,7 +39,18 @@ func compressAndDecompress(p []byte) ([]byte, error) {
 		}
 	}
 
+	freqTableCompressed := freq.Serialize()
+
+	// TODO: return concatenated encoded + freqTable
+
 	// Decompress
+
+	// TODO: reconstruct freqTable and tree from encoded + freqTable
+
+	freq = freqtable.Table{}
+	freq.Deserialize(freqTableCompressed)
+
+	root = createFreqTree(freq)
 
 	var decoded string
 	node := root

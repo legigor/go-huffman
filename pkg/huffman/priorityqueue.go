@@ -2,8 +2,10 @@ package huffman
 
 import (
 	"bytes"
+	"container/heap"
 	"encoding/gob"
 	"fmt"
+	"github.com/legigor/go-huffman/pkg/huffman/freqtable"
 )
 
 type huffmanNode struct {
@@ -46,4 +48,20 @@ func (q *huffmanNode) serialize() ([]byte, error) {
 		return nil, fmt.Errorf("failed to encode huffmanNode: %w", err)
 	}
 	return buf.Bytes(), nil
+}
+
+func createFreqTree(freq freqtable.Table) *huffmanNode {
+	pq := &priorityQueue{}
+	heap.Init(pq)
+	for b, freq := range freq {
+		heap.Push(pq, &huffmanNode{byte: b, freq: freq})
+	}
+
+	for pq.Len() > 1 {
+		left := heap.Pop(pq).(*huffmanNode)
+		right := heap.Pop(pq).(*huffmanNode)
+		heap.Push(pq, &huffmanNode{byte: 0, freq: left.freq + right.freq, left: left, right: right})
+	}
+
+	return heap.Pop(pq).(*huffmanNode)
 }
