@@ -6,7 +6,7 @@ import (
 )
 
 func compressAndDecompress(p []byte) ([]byte, error) {
-	freq := make(map[byte]int)
+	freq := freqTable{}
 	for _, b := range p {
 		freq[b]++
 	}
