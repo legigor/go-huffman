@@ -40,7 +40,6 @@ func compressAndDecompress(p []byte) ([]byte, error) {
 		}
 	}
 
-	//freqTableCompressed := freq.Serialize()
 	treeCompressed := root.Serialize()
 
 	// TODO: return concatenated encoded + freqTable
@@ -49,7 +48,7 @@ func compressAndDecompress(p []byte) ([]byte, error) {
 
 	// TODO: reconstruct freqTable and tree from encoded + freqTable
 
-	root = priorityqueue.Deserialize(treeCompressed).Left
+	root = priorityqueue.Deserialize(treeCompressed)
 
 	var decoded string
 	currentNode := root

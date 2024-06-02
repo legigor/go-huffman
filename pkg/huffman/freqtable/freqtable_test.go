@@ -6,17 +6,6 @@ import (
 	"testing"
 )
 
-func Test_serialize_deserialize(t *testing.T) {
-	freq := Table{'a': 1, 'b': 2, 'c': 3}
-
-	serialized := freq.Serialize()
-
-	deserialized := Table{}
-	deserialized.Deserialize(serialized)
-
-	assert.Equal(t, freq, deserialized)
-}
-
 func Test_normalization(t *testing.T) {
 
 	t.Run("different frequencies", func(t *testing.T) {
