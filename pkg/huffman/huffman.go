@@ -75,10 +75,73 @@ func compressAndDecompress(p []byte) ([]byte, error) {
 	return []byte(decoded), nil
 }
 
-func compress(p []byte) ([]byte, error) {
-	return p, nil
+func compress(p []byte) []byte {
+	freq := freqtable.Initialize(p)
+	root := priorityqueue.CreateTree(freq)
+
+	codes := make(map[byte]string)
+	var generateCodes func(node *priorityqueue.HuffmanNode, code string)
+	generateCodes = func(node *priorityqueue.HuffmanNode, code string) {
+		if node == nil {
+			return
+		}
+		if node.Byte != 0 {
+			codes[node.Byte] = code
+			return
+		}
+		generateCodes(node.Left, code+"0")
+		generateCodes(node.Right, code+"1")
+	}
+	generateCodes(root, "")
+
+	encoded := bitbucket.Bucket{}
+	enc := ""
+	for _, b := range p {
+		code := codes[b]
+		for _, c := range code {
+			if c == '0' {
+				encoded.Append(0)
+				enc += "0"
+			} else {
+				encoded.Append(1)
+				enc += "1"
+			}
+		}
+	}
+
+	code := root.Serialize()
+
+	page := newArchivePage(code, encoded.Bytes(), len(p))
+
+	return page.serialize()
 }
 
 func decompress(p []byte) []byte {
-	return p
+	page := deserialize(p)
+	root := priorityqueue.Deserialize(page.codeSegment)
+	bucket := bitbucket.NewBucket(page.encodedSegment)
+
+	var decoded string
+	currentNode := root
+
+	bitsIterator := bucket.Iterator()
+	for bitsIterator.HasData() {
+		bit := bitsIterator.Read()
+		if bit == 0 {
+			currentNode = currentNode.Left
+		} else {
+			currentNode = currentNode.Right
+		}
+		if currentNode.Left == nil && currentNode.Right == nil {
+			decoded += string(currentNode.Byte)
+			currentNode = root
+		}
+
+		// Must not process more bits than encoded
+		if len(decoded) == page.originalLength {
+			break
+		}
+	}
+
+	return []byte(decoded)
 }

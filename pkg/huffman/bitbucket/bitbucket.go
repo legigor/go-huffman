@@ -6,6 +6,14 @@ type Bucket struct {
 	position int
 }
 
+func NewBucket(bits []byte) *Bucket {
+	return &Bucket{
+		bits:     bits,
+		shift:    0,
+		position: 0,
+	}
+}
+
 func (b *Bucket) Append(bits ...byte) {
 	if len(b.bits) == 0 {
 		b.bits = append(b.bits, 0)
@@ -21,6 +29,10 @@ func (b *Bucket) Append(bits ...byte) {
 			b.bits = append(b.bits, 0)
 		}
 	}
+}
+
+func (b *Bucket) Bytes() []byte {
+	return b.bits
 }
 
 type Iterator struct {

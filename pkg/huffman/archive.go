@@ -7,15 +7,17 @@ import (
 type archivePage struct {
 	codeLength           int
 	encodedSegmentLength int
+	originalLength       int
 	codeSegment          []byte
 	encodedSegment       []byte
 }
 
-func newArchivePage(freq []byte, encoded []byte) *archivePage {
+func newArchivePage(code []byte, encoded []byte, originalLength int) *archivePage {
 	return &archivePage{
-		codeLength:           len(freq),
+		codeLength:           len(code),
 		encodedSegmentLength: len(encoded),
-		codeSegment:          freq,
+		originalLength:       originalLength,
+		codeSegment:          code,
 		encodedSegment:       encoded,
 	}
 }
@@ -24,10 +26,12 @@ func (a *archivePage) serialize() []byte {
 
 	codeLength := intToBytes(a.codeLength)
 	encodedLength := intToBytes(a.encodedSegmentLength)
+	originalLength := intToBytes(a.originalLength)
 
 	var arch []byte
 	arch = append(arch, codeLength...)
 	arch = append(arch, encodedLength...)
+	arch = append(arch, originalLength...)
 	arch = append(arch, a.codeSegment...)
 	arch = append(arch, a.encodedSegment...)
 	return arch
@@ -37,12 +41,14 @@ func deserialize(serialized []byte) *archivePage {
 
 	codeLength := bytesToInt(serialized[0:4])
 	encodedLength := bytesToInt(serialized[4:8])
+	originalLength := bytesToInt(serialized[8:12])
 
 	return &archivePage{
 		codeLength:           codeLength,
 		encodedSegmentLength: encodedLength,
-		codeSegment:          serialized[8 : 8+codeLength],
-		encodedSegment:       serialized[8+codeLength : 8+codeLength+encodedLength],
+		originalLength:       originalLength,
+		codeSegment:          serialized[12 : 12+codeLength],
+		encodedSegment:       serialized[12+codeLength : 12+codeLength+encodedLength],
 	}
 }
 

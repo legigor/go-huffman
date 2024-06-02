@@ -1,7 +1,6 @@
 package huffman
 
 import (
-	"fmt"
 	"io"
 )
 
@@ -14,10 +13,7 @@ func NewWriter(w io.Writer) io.WriteCloser {
 }
 
 func (w *writer) Write(p []byte) (int, error) {
-	c, err := compress(p)
-	if err != nil {
-		return 0, fmt.Errorf("failed to compress data: %w", err)
-	}
+	c := compress(p)
 	return w.w.Write(c)
 }
 

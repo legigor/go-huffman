@@ -11,7 +11,8 @@ func NewReader(r io.Reader) io.ReadCloser {
 }
 
 func (c *Reader) Read(p []byte) (n int, err error) {
-	return c.r.Read(p)
+	d := decompress(p)
+	return c.r.Read(d)
 }
 
 func (c *Reader) Close() error {
