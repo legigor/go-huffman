@@ -38,6 +38,7 @@ func (a byKeyValue) Less(i, j int) bool {
 	return a[i].Value < a[j].Value
 }
 
+// Serialize TODO: Remove as we are serializing the tree
 func (t Table) Serialize() []byte {
 	buf := make([]byte, len(t)*5)
 	pos := 0

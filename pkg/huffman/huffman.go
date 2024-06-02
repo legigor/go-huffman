@@ -3,24 +3,25 @@ package huffman
 import (
 	"github.com/legigor/go-huffman/pkg/huffman/bitbucket"
 	"github.com/legigor/go-huffman/pkg/huffman/freqtable"
+	"github.com/legigor/go-huffman/pkg/huffman/priorityqueue"
 )
 
 func compressAndDecompress(p []byte) ([]byte, error) {
 	freq := freqtable.Initialize(p)
-	root := createFreqTree(freq)
+	root := priorityqueue.CreateTree(freq)
 
 	codes := make(map[byte]string)
-	var generateCodes func(node *huffmanNode, code string)
-	generateCodes = func(node *huffmanNode, code string) {
+	var generateCodes func(node *priorityqueue.HuffmanNode, code string)
+	generateCodes = func(node *priorityqueue.HuffmanNode, code string) {
 		if node == nil {
 			return
 		}
-		if node.byte != 0 {
-			codes[node.byte] = code
+		if node.Byte != 0 {
+			codes[node.Byte] = code
 			return
 		}
-		generateCodes(node.left, code+"0")
-		generateCodes(node.right, code+"1")
+		generateCodes(node.Left, code+"0")
+		generateCodes(node.Right, code+"1")
 	}
 	generateCodes(root, "")
 
@@ -39,7 +40,8 @@ func compressAndDecompress(p []byte) ([]byte, error) {
 		}
 	}
 
-	freqTableCompressed := freq.Serialize()
+	//freqTableCompressed := freq.Serialize()
+	treeCompressed := root.Serialize()
 
 	// TODO: return concatenated encoded + freqTable
 
@@ -47,25 +49,22 @@ func compressAndDecompress(p []byte) ([]byte, error) {
 
 	// TODO: reconstruct freqTable and tree from encoded + freqTable
 
-	freq = freqtable.Table{}
-	freq.Deserialize(freqTableCompressed)
-
-	root = createFreqTree(freq)
+	root = priorityqueue.Deserialize(treeCompressed).Left
 
 	var decoded string
-	node := root
+	currentNode := root
 
 	bitsIterator := encoded.Iterator()
 	for bitsIterator.HasData() {
 		bit := bitsIterator.Read()
 		if bit == 0 {
-			node = node.left
+			currentNode = currentNode.Left
 		} else {
-			node = node.right
+			currentNode = currentNode.Right
 		}
-		if node.left == nil && node.right == nil {
-			decoded += string(node.byte)
-			node = root
+		if currentNode.Left == nil && currentNode.Right == nil {
+			decoded += string(currentNode.Byte)
+			currentNode = root
 		}
 
 		// Must not process more bits than encoded
